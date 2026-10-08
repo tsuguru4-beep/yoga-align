@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9C4A2B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="姿勢ヨガ">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body><title>姿勢ヨガ処方ナビ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* Layout: 片手操作の縦一列。肩・腰評価アプリと同じ構成で、アクセントはテラコッタ */
+:root{
+  --bg:#F3EFEB; --surface:#FFFFFF; --surface-2:#EAE3DC; --line:#D6CCC2;
+  --ink:#231A15; --ink-2:#5E5249;
+  --accent:#9C4A2B; --accent-ink:#FFFFFF; --accent-soft:#F4DFD3;
+  --tight:#2F5F86; --tight-soft:#DCE8F2;
+  --warn:#8A5A00; --warn-soft:#F8E9C6; --bad:#A3271B; --bad-soft:#F6D9D4;
+  --f-body:"IBM Plex Sans JP","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17120F; --surface:#211A16; --surface-2:#2D241F; --line:#41352D;
+  --ink:#EFE7E1; --ink-2:#B3A69C;
+  --accent:#F0A47E; --accent-ink:#2A1208; --accent-soft:#3D2519;
+  --tight:#8DBDE6; --tight-soft:#1C2C3B;
+  --warn:#E3B04B; --warn-soft:#3A2C0E; --bad:#F08A72; --bad-soft:#3E1A14; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#17120F; --surface:#211A16; --surface-2:#2D241F; --line:#41352D;
+  --ink:#EFE7E1; --ink-2:#B3A69C;
+  --accent:#F0A47E; --accent-ink:#2A1208; --accent-soft:#3D2519;
+  --tight:#8DBDE6; --tight-soft:#1C2C3B;
+  --warn:#E3B04B; --warn-soft:#3A2C0E; --bad:#F08A72; --bad-soft:#3E1A14; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;padding-inline:16px;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h2,h3{margin:0}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin-inline:-16px;padding:10px 16px 0;border-bottom:1px solid var(--line)}
+.top-in{max-width:560px;margin:0 auto}
+.app{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app small{font-weight:500;color:var(--ink-2);margin-left:6px}
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:8px}
+.steps button{border:0;background:none;padding:6px 0 8px;font-size:12px;color:var(--ink-2);border-top:3px solid var(--line)}
+.steps button.done{border-top-color:var(--accent-soft)}
+.steps button[aria-current="step"]{border-top-color:var(--accent);color:var(--ink);font-weight:700}
+
+/* main */
+.wrap{max-width:560px;margin:0 auto;padding:14px 0 120px;display:flex;flex-direction:column;gap:12px}
+.ttl{font-size:19px;font-weight:700;margin:2px 2px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card > h3{font-size:15px}
+.sub{font-size:12.5px;color:var(--ink-2);margin:0}
+.sec-title{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--ink-2);margin:6px 2px -4px}
+
+/* segmented & chips */
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 auto;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.seg.compact button{min-height:40px;font-size:14px;padding:6px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);font-size:14px;text-align:left}
+.chips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);font-weight:500}
+.chips button[aria-pressed="true"]::before{content:"✓ ";color:var(--accent);font-weight:700}
+input[type=text],input[type=date],textarea{width:100%;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-height:44px}
+textarea{min-height:260px;resize:vertical;font-size:13.5px;line-height:1.6;background:var(--surface-2);border:0}
+label.fl{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2)}
+
+/* buttons */
+.btn{min-height:48px;padding:0 16px;border-radius:12px;font-weight:700;border:1px solid var(--line);background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{background:var(--bad);color:var(--surface);border-color:var(--bad)}
+.btn.small{min-height:40px;font-size:14px;padding:0 12px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.row .btn{flex:1 1 auto}
+.link{background:none;border:0;color:var(--accent);font-size:14px;padding:6px 0;min-height:36px;text-decoration:underline;text-underline-offset:3px}
+
+/* notices */
+.note{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.note.warn{background:var(--warn-soft);border:1px solid var(--warn)}
+.note.info{background:var(--accent-soft);border:1px solid var(--accent)}
+.note p{margin:0}
+details.hint summary{font-size:13px;color:var(--accent);cursor:pointer;padding:4px 0;list-style:none}
+details.hint summary::-webkit-details-marker{display:none}
+details.hint summary::before{content:"▸ "}
+details.hint[open] summary::before{content:"▾ "}
+details.hint p,details.hint ol{margin:4px 0 0;font-size:13.5px;color:var(--ink-2)}
+details.hint ol{padding-left:1.3em}
+
+/* findings */
+.fd{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.fd:first-of-type{border-top:0;padding-top:0}
+.fd-head{display:flex;align-items:center;gap:8px;font-size:15px}
+.miss{width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.side-row{display:flex;align-items:center;gap:10px}
+.side-row > span{font-size:13px;color:var(--ink-2);flex:none;min-width:5.5em}
+.side-row .seg{flex:1}
+.fd.on .fd-head b{color:var(--accent)}
+.plumb{display:flex;gap:12px;align-items:center}
+.plumb svg{width:84px;flex:none}
+.plumb ul{margin:0;padding-left:1.1em;font-size:13px;color:var(--ink-2)}
+
+/* judgement */
+.type{border-left:4px solid var(--accent);padding:2px 0 2px 10px;display:flex;flex-direction:column;gap:2px}
+.type b{font-size:15px}
+.type span{font-size:13px;color:var(--ink-2)}
+.ms{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.ms:first-of-type{border-top:0;padding-top:0}
+.ms-head{display:flex;align-items:baseline;gap:8px}
+.ms-head b{font-size:15px}
+.ms-head .sd{font-size:12px;padding:1px 7px;border-radius:6px;background:var(--surface-2);color:var(--ink-2)}
+.ms.ok .ms-head b{text-decoration:line-through;color:var(--ink-2)}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.bar.t i{background:var(--tight)}
+.src{font-size:12.5px;color:var(--ink-2)}
+.tchips{display:flex;flex-wrap:wrap;gap:6px}
+.tchips span{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--tight-soft);color:var(--tight);border:1px solid var(--tight)}
+
+/* asana cards */
+.as{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.as:first-of-type{border-top:0;padding-top:0}
+.as-row{display:flex;gap:12px;align-items:flex-start}
+.as-row .pose{width:96px;flex:none;background:var(--surface-2);border-radius:10px}
+.as.on .as-row .pose{background:var(--accent-soft)}
+.as-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.as-txt b{font-size:16px}
+.as-txt small{font-size:12.5px;color:var(--ink-2)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tags span{font-size:11.5px;padding:2px 7px;border-radius:6px}
+.tg-s{background:var(--accent-soft);color:var(--accent)}
+.tg-t{background:var(--tight-soft);color:var(--tight)}
+.tg-c{background:var(--warn-soft);color:var(--warn);font-weight:700}
+.tg-x{background:var(--bad-soft);color:var(--bad);font-weight:700}
+.side-note{font-size:13px;color:var(--accent);font-weight:500}
+.prog-list{margin:0;padding-left:1.4em;font-size:14px;display:flex;flex-direction:column;gap:2px}
+.prog-list small{color:var(--ink-2)}
+
+/* pose figure */
+.pose{display:block;width:100%;height:auto}
+.pose .lb{fill:none;stroke:var(--ink);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.pose .far{stroke:var(--ink-2);opacity:.5}
+.pose .hd{fill:var(--ink)}
+.pose .fl{stroke:var(--line);stroke-width:1.6}
+.pose .pr{fill:var(--tight-soft);stroke:var(--tight);stroke-width:1}
+
+/* patient view */
+.pv-head{display:flex;flex-direction:column;gap:2px;padding:4px 2px}
+.pv-head h2{font-size:22px}
+.pv-head p{margin:0;color:var(--ink-2);font-size:14px}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;break-inside:avoid}
+.pc-top{display:flex;align-items:baseline;gap:10px}
+.pc-n{font-family:var(--f-num);font-size:15px;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.pc h3{font-size:20px}
+.pc .sa{font-size:13px;color:var(--ink-2);margin:-6px 0 0 40px}
+.pc .pose{background:var(--surface-2);border-radius:12px;max-width:360px;margin:0 auto}
+.pc .aim{margin:0;font-size:15px}
+.pc ul{margin:0;padding-left:1.2em;font-size:17px;line-height:1.7}
+.pc .dose{margin:0;font-size:17px;font-weight:700;color:var(--accent)}
+.pc .pmod{margin:0;font-size:15px;padding:8px 12px;border-radius:10px;background:var(--warn-soft)}
+.pv-rules{font-size:16px}
+
+/* bottom nav */
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.nav-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.nav-in .primary{flex:1}
+.nav-mid{font-size:12px;color:var(--ink-2);text-align:center;line-height:1.3;min-width:4.5em}
+.flash{font-size:14px;font-weight:700;color:var(--accent)}
+
+@media print{
+  .top,.bottom,.noprint{display:none!important}
+  body{background:#fff;color:#000;padding:0}
+  .wrap{padding:0;max-width:none}
+  .pc{border:1px solid #999}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top"><div class="top-in" id="top"></div></header>
+<main id="main"></main>
+<nav class="bottom" aria-label="ステップ移動"><div class="nav-in" id="bottom"></div></nav>
+
+<script>
+"use strict";
+const KEY = "yoga-align-draft-v1";
+
+const STEPS = [
+  {id:"info", label:"基本", title:"基本情報・禁忌の確認"},
+  {id:"sag",  label:"側面", title:"矢状面（側方から）"},
+  {id:"fro",  label:"前後", title:"前額面（前方・後方から）"},
+  {id:"jud",  label:"判定", title:"姿勢タイプと筋の推定"},
+  {id:"rx",   label:"処方", title:"アーサナの選択"},
+  {id:"out",  label:"指導", title:"患者向け表示・記録"}
+];
+
+/* 筋。n=名称, pn=患者向けの呼び方, wt=弱化の確認テスト, tt=短縮の確認テスト */
+const MUSCLES = {
+  dnf:    {n:"深部頸部屈筋群", pn:"首の奥の筋肉", wt:"頭頸部屈曲テスト（CCFT）・背臥位で顎を引いた頭部挙上保持"},
+  uptrap: {n:"上部僧帽筋", pn:"肩の上の筋肉", wt:"肩甲骨挙上・上方回旋の筋力", tt:"頸部側屈（対側）・回旋可動域"},
+  levsc:  {n:"肩甲挙筋", pn:"首から肩甲骨の筋肉", tt:"頸部屈曲＋対側側屈・回旋で伸張感"},
+  scm:    {n:"胸鎖乳突筋・斜角筋", pn:"首の前の筋肉", tt:"頸部伸展・対側側屈の可動域"},
+  subocc: {n:"後頭下筋群", pn:"首の付け根の筋肉", tt:"上位頸椎屈曲（うなずき）の可動域"},
+  midtrap:{n:"中部僧帽筋・菱形筋", pn:"肩甲骨の間の筋肉", wt:"腹臥位水平外転（T）MMT"},
+  lowtrap:{n:"下部僧帽筋", pn:"肩甲骨を下げる筋肉", wt:"腹臥位Y挙上MMT"},
+  serr:   {n:"前鋸筋", pn:"わきの下の筋肉", wt:"前鋸筋MMT・壁プッシュアップで翼状の出現"},
+  rcuff:  {n:"肩外旋筋群（棘下筋・小円筋）", pn:"肩の後ろの筋肉", wt:"下垂位外旋MMT"},
+  pmin:   {n:"小胸筋", pn:"胸の奥の筋肉", tt:"背臥位で肩峰–床距離"},
+  pmaj:   {n:"大胸筋", pn:"胸の筋肉", tt:"背臥位で肩外転・水平外転の可動域"},
+  lat:    {n:"広背筋", pn:"背中の横の筋肉", tt:"肩屈曲可動域（腰椎代償の有無）"},
+  ercT:   {n:"胸部脊柱起立筋", pn:"背中の筋肉", wt:"腹臥位胸椎伸展の保持", tt:"胸椎屈曲の可動域"},
+  ercL:   {n:"腰部脊柱起立筋", pn:"腰の筋肉", tt:"前屈時の腰椎の平坦化・屈曲可動域"},
+  multL:  {n:"腰部多裂筋", pn:"腰の奥の筋肉", wt:"腹臥位体幹伸展保持（Sorensen）・多裂筋の触診"},
+  ta:     {n:"腹横筋", pn:"お腹の奥の筋肉", wt:"ドローイン保持・腹臥位プレッシャーバイオフィードバック"},
+  ra:     {n:"腹直筋", pn:"お腹の前の筋肉", wt:"上体起こしMMT", tt:"腹臥位プレスアップの可動域"},
+  obl:    {n:"腹斜筋群", pn:"わき腹の筋肉", wt:"体幹回旋MMT・サイドブリッジ保持時間"},
+  ql:     {n:"腰方形筋", pn:"腰の横の筋肉", wt:"サイドブリッジ保持時間", tt:"立位体幹側屈（対側）の可動域"},
+  ilio:   {n:"腸腰筋", pn:"脚の付け根の奥の筋肉", wt:"座位股関節屈曲MMT（屈曲90°以上の保持）", tt:"Thomasテスト"},
+  rf:     {n:"大腿直筋", pn:"太ももの前（付け根側）", tt:"修正Thomasテスト・Elyテスト"},
+  gmax:   {n:"大殿筋", pn:"お尻の筋肉", wt:"腹臥位膝屈曲位の股関節伸展MMT・片脚ブリッジ"},
+  gmed:   {n:"中殿筋", pn:"お尻の横の筋肉", wt:"側臥位股関節外転MMT・Trendelenburg徴候"},
+  er:     {n:"深層外旋六筋", pn:"お尻の奥の筋肉", wt:"座位股関節外旋MMT"},
+  tfl:    {n:"大腿筋膜張筋・腸脛靱帯", pn:"太ももの外側", tt:"Oberテスト"},
+  add:    {n:"股関節内転筋群", pn:"太ももの内側", wt:"側臥位股関節内転MMT", tt:"開排・股関節外転の可動域"},
+  ham:    {n:"ハムストリングス", pn:"太ももの裏", wt:"腹臥位膝屈曲MMT", tt:"SLR・膝窩角"},
+  quad:   {n:"大腿四頭筋（内側広筋を含む）", pn:"太ももの前", wt:"座位膝伸展MMT・extension lag・椅子立ち上がり"},
+  tricep: {n:"下腿三頭筋", pn:"ふくらはぎ", wt:"片脚踵上げの回数", tt:"膝伸展位・屈曲位での足関節背屈可動域"},
+  tp:     {n:"後脛骨筋", pn:"土踏まずを支える筋肉", wt:"内がえしMMT・片脚踵上げ時の踵の内反", tt:"外がえしの可動域"},
+  per:    {n:"腓骨筋群", pn:"すねの外側の筋肉", wt:"外がえしMMT", tt:"内がえしの可動域"},
+  intr:   {n:"足部内在筋", pn:"足の裏の筋肉", wt:"ショートフット保持・足趾把持"}
+};
+
+/* 姿勢所見。w=弱化が推定される筋, t=短縮が推定される筋 [筋, 重み1-3, 側 s=選んだ側 o=反対側]
+   side: "lat"=右か左, "bi"=両側/右/左。sl=側ボタンの見出し。ex=同時に選べない所見 */
+const GROUPS = {sag:["頭頸部","肩甲帯・胸椎","腰椎・骨盤","膝"], fro:["頭頸部","肩甲帯・胸椎","体幹・骨盤","膝・股関節","足部"]};
+const FINDINGS = [
+  {id:"fhp", pl:"sag", g:"頭頸部", n:"頭部前方位", h:"耳垂が肩峰を通る垂線より前方にある。",
+    w:[["dnf",3],["lowtrap",1]], t:[["subocc",2],["scm",2],["levsc",1]]},
+  {id:"rsh", pl:"sag", g:"肩甲帯・胸椎", n:"巻き肩（肩甲骨前方突出）", h:"肩峰が垂線より前方にあり、肩甲骨が外転・前傾している。",
+    w:[["midtrap",3],["lowtrap",2],["serr",1],["rcuff",1]], t:[["pmin",3],["pmaj",2]]},
+  {id:"kyph", pl:"sag", g:"肩甲帯・胸椎", n:"胸椎後弯の増大（円背）", h:"胸椎の丸みが大きく、上体が前に丸まっている。", ex:"flatT",
+    w:[["ercT",3],["midtrap",2],["lowtrap",2]], t:[["pmaj",2],["ra",1]]},
+  {id:"flatT", pl:"sag", g:"肩甲帯・胸椎", n:"胸椎後弯の減少（平坦な背部）", h:"胸椎の丸みが少なく、背中が平らに見える。", ex:"kyph",
+    w:[["serr",2]], t:[["ercT",2]]},
+  {id:"lordInc", pl:"sag", g:"腰椎・骨盤", n:"腰椎前弯の増大", h:"腰の反りが大きく、腹部が前に出ている。", ex:"lordDec",
+    w:[["ta",3],["ra",2],["obl",2],["gmax",1]], t:[["ercL",3],["ilio",2]]},
+  {id:"lordDec", pl:"sag", g:"腰椎・骨盤", n:"腰椎前弯の減少（平坦な腰部）", h:"腰の反りが少なく、腰部が平らに見える。", ex:"lordInc",
+    w:[["multL",3],["ilio",2]], t:[["ham",2],["ra",1]]},
+  {id:"pelAnt", pl:"sag", g:"腰椎・骨盤", n:"骨盤前傾", h:"ASISがPSISより明らかに低い（目安：女性で2横指以上、男性で1横指以上）。", ex:"pelPost",
+    w:[["gmax",3],["ham",2],["ta",2],["ra",1],["gmed",1]], t:[["ilio",3],["rf",3],["ercL",2],["tfl",1]]},
+  {id:"pelPost", pl:"sag", g:"腰椎・骨盤", n:"骨盤後傾", h:"ASISがPSISと同じ高さか、より高い。", ex:"pelAnt",
+    w:[["ilio",3],["multL",2]], t:[["ham",3],["ra",1],["gmax",1]]},
+  {id:"sway", pl:"sag", g:"腰椎・骨盤", n:"骨盤前方偏位（スウェイバック）", h:"大転子が垂線より前方にあり、胸郭が骨盤より後ろへ傾いている。",
+    w:[["ilio",3],["obl",3],["gmax",2],["ercT",1]], t:[["ham",3],["ra",1]]},
+  {id:"kneeHyp", pl:"sag", g:"膝", n:"膝の過伸展（反張膝）", h:"膝関節が垂線より後方にあり、過伸展位で立っている。", ex:"kneeFlex",
+    w:[["ham",2],["quad",2],["gmax",1]], t:[["tricep",1]]},
+  {id:"kneeFlex", pl:"sag", g:"膝", n:"膝の屈曲位", h:"立位で膝が伸びきらず、垂線より前方にある。", ex:"kneeHyp",
+    w:[["quad",3],["gmax",2]], t:[["ham",2],["ilio",2],["tricep",2]]},
+
+  {id:"headTilt", pl:"fro", g:"頭頸部", n:"頭部の側屈", h:"頭部が一方へ傾いている。", side:"lat", sl:"傾く側",
+    w:[["dnf",1]], t:[["uptrap",2,"s"],["scm",2,"s"],["levsc",1,"s"]]},
+  {id:"shHigh", pl:"fro", g:"肩甲帯・胸椎", n:"肩の高さの左右差", h:"肩峰の高さに左右差がある。", side:"lat", sl:"高い側",
+    w:[["lowtrap",2,"s"]], t:[["uptrap",2,"s"],["levsc",2,"s"]]},
+  {id:"scapDR", pl:"fro", g:"肩甲帯・胸椎", n:"肩甲骨の下方回旋・下制", h:"肩甲骨下角が内側に寄り、肩甲棘が外下方へ傾いている。", side:"bi", sl:"該当側",
+    w:[["serr",3,"s"],["uptrap",2,"s"]], t:[["levsc",2,"s"],["pmin",2,"s"]]},
+  {id:"wing", pl:"fro", g:"肩甲帯・胸椎", n:"翼状肩甲", h:"肩甲骨内側縁や下角が胸郭から浮いている。", side:"bi", sl:"該当側",
+    w:[["serr",3,"s"],["lowtrap",2,"s"]], t:[["pmin",2,"s"]]},
+  {id:"scol", pl:"fro", g:"体幹・骨盤", n:"体幹の側方偏位・側弯傾向", h:"棘突起の並びが弯曲している、またはウエストラインが左右非対称。構造的側弯（前屈で肋骨隆起）は別途評価。", side:"lat", sl:"腰椎の凸側",
+    w:[["obl",2,"s"],["ql",2,"s"],["multL",1,"s"]], t:[["ql",2,"o"]]},
+  {id:"pelObl", pl:"fro", g:"体幹・骨盤", n:"骨盤の側方傾斜", h:"腸骨稜の高さに左右差がある。脚長差の有無も確認。", side:"lat", sl:"高い側",
+    w:[["gmed",3,"s"],["obl",1,"o"],["ql",1,"o"]], t:[["ql",2,"s"],["add",2,"s"],["tfl",1,"o"]]},
+  {id:"valgus", pl:"fro", g:"膝・股関節", n:"膝の外反（X脚・knee-in）", h:"膝が内側に入り、足部より内側にある。", side:"bi", sl:"該当側", ex:"varus",
+    w:[["gmed",3,"s"],["er",3,"s"],["gmax",2,"s"],["tp",1,"s"]], t:[["tfl",2,"s"],["add",2,"s"]]},
+  {id:"varus", pl:"fro", g:"膝・股関節", n:"膝の内反（O脚）", h:"膝の間が開いている。骨性（構造的）の内反はアーサナで変わりにくい。大腿内旋と膝過伸展を伴う機能的なものが対象。", side:"bi", sl:"該当側", ex:"valgus",
+    w:[["er",2,"s"],["add",1,"s"],["quad",1,"s"],["tp",1,"s"]], t:[["tfl",2,"s"]]},
+  {id:"femIR", pl:"fro", g:"膝・股関節", n:"大腿の内旋（膝蓋骨が内向き）", h:"足部を前に向けたとき、膝蓋骨が内側を向いている。", side:"bi", sl:"該当側",
+    w:[["er",3,"s"],["gmax",2,"s"],["gmed",2,"s"]], t:[["tfl",2,"s"],["add",1,"s"]]},
+  {id:"pron", pl:"fro", g:"足部", n:"足部の回内・扁平足", h:"内側縦アーチが低く、後方から見て踵骨が外反している。", side:"bi", sl:"該当側", ex:"sup",
+    w:[["tp",3,"s"],["intr",3,"s"],["er",1,"s"],["gmed",1,"s"]], t:[["tricep",2,"s"],["per",2,"s"]]},
+  {id:"sup", pl:"fro", g:"足部", n:"足部の回外・ハイアーチ", h:"内側縦アーチが高く、後方から見て踵骨が内反している。", side:"bi", sl:"該当側", ex:"pron",
+    w:[["per",3,"s"],["intr",1,"s"]], t:[["tricep",2,"s"],["tp",1,"s"]]}
+];
+
+/* 禁忌・注意。ex=該当タグのアーサナを除外, ca=修正版で提示 */
+const SCREEN = [
+  {id:"osteo", n:"骨粗鬆症・脊椎圧迫骨折の既往", ex:["flex"]},
+  {id:"htn",   n:"コントロール不良の高血圧・緑内障・網膜疾患", ex:["inv"]},
+  {id:"preg",  n:"妊娠中", ex:["prone"], ca:["supine","abd"]},
+  {id:"tha",   n:"人工股関節置換術後（脱臼肢位の制限あり）", ex:["tha"]},
+  {id:"acute", n:"急性腰痛・下肢の神経症状あり", ca:["ext","flex","abd"]},
+  {id:"neck",  n:"頸部痛・頸椎の症状あり", ca:["neck"]},
+  {id:"wrist", n:"手関節・肩に荷重時の痛み", ca:["hand"]},
+  {id:"knee",  n:"膝の痛み・深い屈曲が困難", ca:["knee"]},
+  {id:"bal",   n:"バランス低下・転倒リスク", ca:["bal"]},
+  {id:"floor", n:"床への座り込み・立ち上がりが困難", ca:["floor"]}
+];
+/* アーサナの負荷特性。mod=PT向けの修正, p=患者向けの一言 */
+const TAGS = {
+  bal:   {n:"片脚・バランス", mod:"壁や椅子の背に手を添えて行う", p:"壁やいすに手を添えて行いましょう"},
+  hand:  {n:"手で体重を支える", mod:"前腕支持・拳支持、または壁や台に手をついて角度を浅く", p:"手首が痛いときは、ひじをつくか壁に手をついて"},
+  knee:  {n:"膝の深い屈曲・膝つき", mod:"屈曲を浅くし、膝下にブランケットを敷く", p:"膝は痛くない深さまで。膝の下にタオルを敷いて"},
+  neck:  {n:"頸部への負荷", mod:"頭部は床に置いたまま、頸部を反らさない・回旋しない", p:"首は反らさず、頭を動かさないで"},
+  ext:   {n:"脊柱の伸展", mod:"疼痛が出ない範囲の浅い伸展にとどめる", p:"腰が痛くない高さまでにしましょう"},
+  flex:  {n:"脊柱の屈曲", mod:"脊柱を丸めず股関節から動く・可動域を小さく", p:"背中を丸めず、脚の付け根から動きましょう"},
+  inv:   {n:"頭部が心臓より低くなる", mod:"台や椅子に手をつき、頭部を心臓より高く保つ", p:"頭を下げすぎないようにしましょう"},
+  prone: {n:"腹臥位", mod:"腹臥位を避け、立位・四つ這いで代替する", p:""},
+  supine:{n:"背臥位の保持", mod:"短時間にとどめるか、上体を高くして行う", p:"あおむけは短めにしましょう"},
+  abd:   {n:"強い腹圧", mod:"息を止めない・強度を下げる", p:"息を止めずに行いましょう"},
+  floor: {n:"床で行う", mod:"ベッド上や椅子に座っての代替で行う", p:"ベッドの上やいすで行ってもかまいません"},
+  tha:   {n:"股関節の深い屈曲（脱臼肢位）", mod:"", p:""}
+};
+
+/* 姿勢の棒人間。座標は viewBox 0 0 120 96、床は y=91。
+   h=頭, n=肩, p=骨盤, c=体幹の曲がり, a1/a2=腕[肘,手], l1/l2=脚[膝,足首,つま先], f=正面図, pr=補助具[x,y,w,h] */
+const POSES = {
+  tadasana:{h:[60,14],n:[60,24],p:[60,52],a1:[[61,38],[62,52]],l1:[[60,70],[60,87],[67,90]]},
+  urdhva:{f:1,h:[60,16],n:[60,26],p:[60,53],a1:[[51,15],[44,4]],a2:[[69,15],[76,4]],l1:[[57,71],[56,87],[52,90]],l2:[[63,71],[64,87],[68,90]]},
+  utkata:{h:[65,31],n:[61,40],p:[51,63],a1:[[64,27],[68,15]],l1:[[69,71],[60,87],[67,90]]},
+  war2:{f:1,h:[60,34],n:[60,44],p:[60,71],a1:[[45,45],[30,45]],a2:[[75,45],[90,45]],l1:[[41,72],[41,87],[34,90]],l2:[[74,80],[88,87],[93,90]]},
+  war1:{h:[56,33],n:[56,43],p:[56,70],a1:[[57,30],[58,18]],l1:[[75,70],[76,87],[83,90]],l2:[[44,79],[30,87],[26,90]]},
+  war3:{h:[96,50],n:[86,51],p:[60,52],a1:[[76,55],[66,56]],l1:[[60,70],[60,87],[67,90]],l2:[[41,52],[24,52],[24,58]]},
+  tree:{f:1,h:[60,16],n:[60,26],p:[60,53],a1:[[51,13],[59,3]],a2:[[69,13],[61,3]],l1:[[59,71],[59,87],[54,90]],l2:[[76,64],[62,60]]},
+  trikona:{f:1,h:[30,38],n:[38,43],p:[60,58],a1:[[39,59],[40,76]],a2:[[38,30],[38,17]],l1:[[49,73],[38,87],[32,90]],l2:[[71,73],[82,87],[86,90]]},
+  chandra:{f:1,h:[10,51],n:[20,52],p:[45,53],a1:[[20,68],[21,86]],a2:[[20,37],[20,23]],l1:[[45,71],[45,87],[40,90]],l2:[[63,52],[81,51],[85,51]]},
+  uttana:{h:[69,84],n:[66,77],p:[60,52],a1:[[68,84],[71,90]],l1:[[60,70],[60,87],[67,90]]},
+  dog:{h:[42,79],n:[46,72],p:[66,52],a1:[[38,80],[31,89]],l1:[[73,71],[80,87],[86,90]]},
+  plank:{h:[22,67],n:[30,70],p:[56,77],a1:[[30,80],[30,90]],l1:[[75,82],[92,86],[93,90]]},
+  splank:{f:1,h:[22,67],n:[30,70],p:[56,77],a1:[[30,80],[30,90]],a2:[[30,58],[30,46]],l1:[[75,82],[92,86],[93,90]],l2:[[75,82],[92,86],[93,90]]},
+  birddog:{h:[31,62],n:[40,65],p:[67,66],a1:[[40,77],[40,89]],a2:[[26,64],[13,63]],l1:[[85,64],[102,63],[103,58]],l2:[[67,87],[85,88],[89,88]]},
+  catcow:{h:[32,70],n:[40,65],p:[68,66],c:[54,51],a1:[[40,77],[40,89]],l1:[[68,87],[85,88],[89,88]]},
+  cobra:{h:[35,68],n:[42,74],p:[66,87],a1:[[46,82],[40,89]],l1:[[83,88],[100,88],[105,89]]},
+  locust:{h:[28,76],n:[36,80],p:[60,86],a1:[[48,80],[62,79]],l1:[[78,83],[95,80],[100,80]]},
+  bridge:{h:[20,85],n:[31,86],p:[56,70],a1:[[44,89],[57,89]],l1:[[75,67],[76,87],[83,90]]},
+  boat:{h:[40,48],n:[44,58],p:[55,83],a1:[[57,61],[69,61]],l1:[[70,67],[86,67],[89,63]]},
+  danda:{h:[44,48],n:[44,58],p:[44,84],a1:[[45,72],[47,85]],l1:[[63,87],[80,87],[81,80]],pr:[[32,86,22,5]]},
+  lunge:{h:[56,37],n:[56,47],p:[58,74],a1:[[57,33],[58,22]],l1:[[76,70],[78,87],[85,90]],l2:[[44,88],[26,88],[22,89]]},
+  supta:{h:[16,84],n:[27,86],p:[54,86],a1:[[40,72],[56,60]],l1:[[56,67],[58,50],[63,48]],l2:[[73,87],[91,87],[92,81]]},
+  baddha:{f:1,h:[60,46],n:[60,56],p:[60,83],a1:[[51,70],[57,86]],a2:[[69,70],[63,86]],l1:[[41,80],[57,87]],l2:[[79,80],[63,87]]},
+  fish:{h:[27,83],n:[38,79],p:[62,87],a1:[[46,88],[56,90]],l1:[[80,88],[97,88],[98,82]],pr:[[35,82,12,9]]},
+  sidebend:{f:1,h:[48,18],n:[53,27],p:[60,53],c:[64,38],a1:[[49,16],[43,6]],a2:[[54,15],[46,5]],l1:[[59,71],[59,87],[55,90]],l2:[[61,71],[61,87],[65,90]]},
+  chin:{h:[19,84],n:[30,86],p:[57,86],a1:[[44,89],[56,89]],l1:[[72,72],[84,87],[91,90]],pr:[[9,88,18,3]]},
+  goddess:{f:1,h:[60,33],n:[60,43],p:[60,70],a1:[[46,44],[46,31]],a2:[[74,44],[74,31]],l1:[[42,72],[40,87],[34,90]],l2:[[78,72],[80,87],[86,90]]},
+  heel:{h:[60,10],n:[60,20],p:[60,48],a1:[[61,34],[62,48]],l1:[[60,67],[60,83],[66,90]]},
+  kneeup:{h:[60,14],n:[60,24],p:[60,52],a1:[[53,39],[58,51]],l1:[[78,50],[79,67],[85,69]],l2:[[60,70],[60,87],[67,90]]}
+};
+
+/* アーサナ。s=強化する筋{筋:重み1-3}, t=伸張する筋, uni=左右別に行う, pos=肢位, lv=難易度
+   how=手順, pt=PTの観察点, cue=患者向けの言葉, mod=修正版, dose=目安量 */
+const POS_ORDER = ["立位","手をつく","腹臥位","座位","背臥位"];
+const ASANAS = [
+  {id:"tadasana", ja:"山のポーズ", sa:"Tadasana", pos:"立位", lv:1, s:{ta:1,intr:1,gmax:1,dnf:1,lowtrap:1}, t:[], tags:[],
+    how:["足を腰幅に開き、母趾球・小趾球・踵の3点に均等に荷重","膝はロックせず軽く緩め、骨盤を中間位に（ASISと恥骨結合が垂直）","下腹部を軽く引き込み、胸骨を引き上げ、顎を軽く引く"],
+    pt:"鏡や壁で、耳垂–肩峰–大転子–膝前部–外果の整列を本人に体感させる。すべての処方の基本姿勢として最初に行う。",
+    cue:["足の裏全体で床を押す","頭のてっぺんを天井へ引き上げる","お腹を軽く引き込み、あごを軽く引く"],
+    mod:"壁に背をつけ、後頭部・肩甲骨・殿部を壁に触れさせて行う", dose:"5〜8呼吸 × 2回"},
+  {id:"urdhva", ja:"両腕を上げるポーズ（Y字）", sa:"Urdhva Hastasana", pos:"立位", lv:1, s:{lowtrap:3,serr:2,ta:1,ercT:1}, t:["lat","pmin"], tags:[],
+    how:["山のポーズから、母指を後ろに向けて両腕をY字に挙上","肩をすくめず、肩甲骨を下制させながら上方回旋させる","肋骨が前に開かない（腰を反らない）よう腹部を保つ"],
+    pt:"腰椎伸展・肋骨挙上での代償に注意。肩関節の屈曲制限があれば可動域内で行う。",
+    cue:["腕は斜め上へY字に","肩を耳から遠ざける","腰は反らさない"],
+    mod:"壁に背をつけ、腕を壁に沿わせて上げる", dose:"5呼吸 × 3回"},
+  {id:"utkata", ja:"椅子のポーズ", sa:"Utkatasana", pos:"立位", lv:2, s:{quad:3,gmax:2,ercT:1,ta:1}, t:["tricep"], tags:["knee"],
+    how:["足を腰幅にし、股関節から曲げて殿部を後方へ引く","膝はつま先と同じ方向へ。つま先より大きく前に出さない","体幹は前傾させつつ背筋を伸ばし、腕を斜め上へ"],
+    pt:"knee-inが出ないか観察。「膝を外へ」のキューで中殿筋・外旋筋も動員できる。",
+    cue:["いすに座るようにお尻を後ろへ","膝はつま先と同じ向き","背中はまっすぐ"],
+    mod:"浅い屈曲から始め、椅子の座面に軽く触れる程度にする", dose:"5呼吸 × 3回"},
+  {id:"war2", ja:"戦士のポーズⅡ", sa:"Virabhadrasana II", pos:"立位", lv:2, uni:1, s:{quad:3,gmed:2,er:2,add:1}, t:["add","ilio"], tags:["knee"],
+    how:["脚を大きく開き、前足を90°外へ向ける","前膝を足首の真上まで曲げ、膝を第2趾の方向へ向ける","骨盤と体幹は正面のまま、両腕を床と平行に伸ばす"],
+    pt:"前膝の外反（knee-in）を防ぐことで、股関節外旋筋・中殿筋の等尺性収縮が得られる。",
+    cue:["前の膝は足の人さし指の方向へ","上半身はまっすぐ立てる","両腕を遠くへ伸ばす"],
+    mod:"膝の曲げを浅くする、または椅子に前脚の大腿を乗せて行う", dose:"左右各5呼吸 × 2〜3回"},
+  {id:"war1", ja:"戦士のポーズⅠ", sa:"Virabhadrasana I", pos:"立位", lv:2, uni:1, s:{quad:2,gmax:2,ercT:1,lowtrap:1}, t:["ilio","rf","tricep"], tags:["knee"],
+    how:["脚を前後に開き、後ろ足を約45°外へ向ける","前膝を曲げ、骨盤を正面へ向ける","後ろ脚の股関節前面を伸ばしながら、腕を上へ"],
+    pt:"後ろ脚の腸腰筋・大腿直筋の伸張。腰椎前弯で代償しないよう、骨盤後傾を誘導する。",
+    cue:["腰を反らさず、後ろ脚の付け根を伸ばす","前の膝は足首の上","腕は耳の横へ"],
+    mod:"後ろ足の踵を上げたハイランジにする、または腕を腰に置く", dose:"左右各5呼吸 × 2回"},
+  {id:"war3", ja:"戦士のポーズⅢ", sa:"Virabhadrasana III", pos:"立位", lv:3, uni:1, s:{gmax:3,ham:2,gmed:2,ercT:2,multL:2,intr:1}, t:[], tags:["bal"],
+    how:["片脚立ちで、股関節から体幹を前傾させる","後ろ脚と体幹を一直線にし、床と平行を目標にする","骨盤は水平に保つ（挙上脚側が開かない）"],
+    pt:"支持脚の大殿筋・中殿筋の閉鎖性運動連鎖での収縮。骨盤の回旋・下制を観察する。",
+    cue:["頭から足先まで一直線","骨盤は床と平行に","支えている脚の膝は軽く緩める"],
+    mod:"両手を壁や椅子の背につき、脚を低めに上げる", dose:"左右各3〜5呼吸 × 2回"},
+  {id:"tree", ja:"木のポーズ", sa:"Vrksasana", pos:"立位", lv:2, uni:1, s:{gmed:3,intr:2,tp:2,per:1,er:1}, t:["add"], tags:["bal"],
+    how:["片脚に荷重し、足裏の3点で床を捉える","反対の足裏を内果・下腿・大腿内側のいずれかに当てる（膝関節には当てない）","骨盤を水平に保ち、手は胸の前か頭上で合わせる"],
+    pt:"支持脚の中殿筋・足部内在筋・後脛骨筋。足部の回内とTrendelenburg徴候を観察しながら行う。",
+    cue:["支えている足の裏で床を押す","骨盤は水平に","膝の横には足を当てない"],
+    mod:"足をくるぶしの位置に置く、壁に手を添える", dose:"左右各5〜8呼吸 × 2回"},
+  {id:"trikona", ja:"三角のポーズ", sa:"Utthita Trikonasana", pos:"立位", lv:2, uni:1, s:{obl:2,ql:1,quad:1,gmed:1}, t:["ham","add","ql"], tags:[],
+    how:["脚を大きく開き、前足を90°外へ向ける","体幹を前脚の方向へ平行移動し、股関節から側方に傾ける","下の手をすね（またはブロック）に置き、上の腕を天井へ伸ばす"],
+    pt:"体幹の側屈ではなく股関節からの傾き。上側体幹は伸張、下側は収縮。側弯傾向では凹側を伸ばす側から行う。",
+    cue:["胸は正面に開く","手はすね（台）に軽く置く","両脚はしっかり伸ばす"],
+    mod:"下の手をブロックや椅子に置く", dose:"左右各5呼吸 × 2回"},
+  {id:"chandra", ja:"半月のポーズ", sa:"Ardha Chandrasana", pos:"立位", lv:3, uni:1, s:{gmed:3,er:2,obl:2,intr:1}, t:[], tags:["bal"],
+    how:["三角のポーズから前膝を曲げ、前方の床（ブロック）に手をつく","支持脚を伸ばしながら後ろ脚を床と平行まで挙上する","骨盤と胸を横へ開き、上の腕を天井へ"],
+    pt:"支持脚の中殿筋・外旋筋の強い等尺性収縮。骨盤が床側へ回旋しないか観察する。",
+    cue:["上げた脚はかかとで押し出す","胸を横へ開く","支える手は軽く"],
+    mod:"背中を壁につけて行う・下の手をブロックに置く", dose:"左右各3〜5呼吸 × 2回"},
+  {id:"uttana", ja:"立位前屈", sa:"Uttanasana", pos:"立位", lv:1, s:{}, t:["ham","tricep","ercL"], tags:["flex","inv"],
+    how:["山のポーズから、股関節から体幹を前に倒す","膝は必要に応じて曲げ、腹部を大腿に近づける","頸部の力を抜き、ゆっくり呼吸する"],
+    pt:"ハムストリングス・腰部の伸張。腰椎屈曲が先行して股関節屈曲が出ない場合は膝を曲げて行う。",
+    cue:["脚の付け根から前に倒れる","膝は曲げてよい","首の力を抜く"],
+    mod:"膝を曲げ、手を台や椅子に置く（頭を下げすぎない）", dose:"5〜8呼吸 × 2回"},
+  {id:"dog", ja:"下向きの犬のポーズ", sa:"Adho Mukha Svanasana", pos:"手をつく", lv:2, s:{serr:3,lowtrap:2,rcuff:1,quad:1}, t:["ham","tricep","lat"], tags:["hand","inv","floor"],
+    how:["四つ這いから足趾を立て、殿部を後上方へ持ち上げる","手で床を押し、肩甲骨を上方回旋させて体幹から遠ざける","踵は床に向けて下ろす（つかなくてよい）"],
+    pt:"前鋸筋の閉鎖性収縮と下部僧帽筋の動員。肩甲骨の翼状・肩のすくみを観察する。",
+    cue:["手で床を押して、お尻を高く","背中はまっすぐ（膝は曲げてよい）","肩を耳から遠ざける"],
+    mod:"壁に手をついて行う（立位のドッグ）、または膝を曲げて行う", dose:"5呼吸 × 3回"},
+  {id:"plank", ja:"板のポーズ", sa:"Phalakasana", pos:"手をつく", lv:2, s:{ta:3,ra:2,serr:3,obl:1,quad:1,gmax:1}, t:[], tags:["hand","abd","floor"],
+    how:["手を肩の真下につき、脚を後ろへ伸ばす","頭から踵まで一直線を保つ（腰が落ちない、殿部が上がらない）","手で床を押し、肩甲骨の間が沈まないようにする"],
+    pt:"腹横筋・腹直筋と前鋸筋の協調。腰椎前弯の増大・肩甲骨の内転を代償として観察する。",
+    cue:["頭からかかとまで一直線","お腹を引き込む","手で床を押す"],
+    mod:"膝をついて行う・前腕支持にする・壁や台に手をつく", dose:"3〜5呼吸 × 3回"},
+  {id:"splank", ja:"サイドプランク", sa:"Vasisthasana", pos:"手をつく", lv:3, uni:1, s:{obl:3,ql:3,gmed:3,serr:2}, t:[], tags:["hand","floor"],
+    how:["側臥位から前腕または手で支え、骨盤を持ち上げる","頭・体幹・脚を一直線に（骨盤が後ろに引けない）","上の腕を天井へ伸ばす"],
+    pt:"下側の腹斜筋・腰方形筋・中殿筋。側弯傾向・骨盤側方傾斜では弱化側を下にして行う。",
+    cue:["体を横一直線に","お尻を落とさない","下の肩で床を押す"],
+    mod:"下側の膝をついて行う（ハーフサイドプランク）・前腕支持にする", dose:"左右各3〜5呼吸 × 2〜3回"},
+  {id:"birddog", ja:"四つ這いのバランス", sa:"Dandayamana Bharmanasana", pos:"手をつく", lv:1, uni:1, s:{multL:3,gmax:2,ta:2,lowtrap:2,serr:1}, t:[], tags:["hand","knee","floor"],
+    how:["四つ這いで手は肩の下、膝は股関節の下","腹部を軽く引き込み、腰椎を中間位に保つ","片腕と反対側の脚を床と平行まで伸ばす"],
+    pt:"多裂筋・大殿筋と下部僧帽筋。骨盤の回旋・腰椎伸展での代償を観察。腰背部の水平を保たせる。",
+    cue:["背中は平らなテーブルのように","伸ばした手と足を遠くへ","腰を反らさない"],
+    mod:"片腕だけ・片脚だけから始める。膝下にブランケットを敷く", dose:"左右交互に各5呼吸 × 3回"},
+  {id:"catcow", ja:"猫と牛のポーズ", sa:"Marjaryasana–Bitilasana", pos:"手をつく", lv:1, s:{ta:1,serr:1}, t:["ercT","ercL"], tags:["hand","knee","floor","flex"],
+    how:["四つ這いで、吸う息で胸を前に開き背部を反らす（牛）","吐く息で背中を丸め、手で床を押す（猫）","呼吸に合わせてゆっくり繰り返す"],
+    pt:"脊柱の分節的な屈伸のモビリティ。胸椎が動かず腰椎だけで動く場合は、胸椎レベルを触れて誘導する。",
+    cue:["吸って胸を開く、吐いて背中を丸める","呼吸に合わせてゆっくり","手で床を押す"],
+    mod:"椅子座位で行う（座位の猫と牛）", dose:"呼吸に合わせて8〜10回"},
+  {id:"cobra", ja:"コブラのポーズ（ローコブラ）", sa:"Bhujangasana", pos:"腹臥位", lv:1, s:{ercT:3,midtrap:2,lowtrap:2,multL:1}, t:["ra","pmaj"], tags:["prone","ext","floor"],
+    how:["腹臥位で手を胸の横に置き、恥骨を床に押しつける","手にあまり体重をかけず、背筋で胸を持ち上げる","肩甲骨を下制・内転し、頸部は長く保つ"],
+    pt:"上背部の伸筋と中下部僧帽筋。腰椎だけで反る（下位腰椎のヒンジ）のを避け、胸椎伸展を引き出す。",
+    cue:["手の力ではなく背中で胸を持ち上げる","肩を下げて胸を開く","首は長く、目線は斜め前"],
+    mod:"前腕を床につけたスフィンクスのポーズで行う", dose:"3〜5呼吸 × 3回"},
+  {id:"locust", ja:"バッタのポーズ", sa:"Salabhasana", pos:"腹臥位", lv:2, s:{ercT:3,multL:3,gmax:2,ham:2,midtrap:2,lowtrap:1,rcuff:1}, t:[], tags:["prone","ext","floor"],
+    how:["腹臥位で腕を体側に置く","吸う息で胸・腕・脚を床から持ち上げる","脚は長く後方へ伸ばし、頸部を反らさない"],
+    pt:"背面筋群（脊柱起立筋・多裂筋・大殿筋・ハムストリングス）の総合的な強化。腰部痛の出現に注意。",
+    cue:["胸と脚を少しだけ浮かせる","脚は後ろへ長く","首は反らさない"],
+    mod:"上半身だけ・片脚だけで行う", dose:"3〜5呼吸 × 3回"},
+  {id:"bridge", ja:"橋のポーズ", sa:"Setu Bandha Sarvangasana", pos:"背臥位", lv:1, s:{gmax:3,ham:2,multL:1,add:1}, t:["ilio","rf","pmaj"], tags:["neck","floor","supine"],
+    how:["背臥位で膝を立て、足を腰幅に置く","足裏で床を押し、殿部から骨盤を持ち上げる","膝が開かない・閉じないよう膝の間を保つ（ブロックを挟んでもよい）"],
+    pt:"大殿筋の強化と股関節前面の伸張。腰椎伸展で上げていないか、ハムストリングスの過剰な代償がないか観察する。",
+    cue:["足の裏で床を押してお尻を上げる","腰は反らさない","膝は前へ向ける"],
+    mod:"挙上を小さくする。首に違和感があれば頭の下にタオルを敷く", dose:"5呼吸 × 3回"},
+  {id:"boat", ja:"船のポーズ（膝を曲げて）", sa:"Navasana", pos:"座位", lv:2, s:{ilio:3,ra:3,ta:2,obl:1,ercT:1}, t:[], tags:["abd","floor","tha"],
+    how:["座位で膝を曲げ、坐骨の後ろ側でバランスをとる","背筋を伸ばしたまま足を床から浮かせ、下腿を床と平行にする","腕を前方へ伸ばす"],
+    pt:"股関節屈曲90°以上での腸腰筋の保持と腹筋群。腰椎が後弯して崩れないよう、胸骨を引き上げさせる。",
+    cue:["背中を丸めない","すねを床と平行に","お腹を引き込む"],
+    mod:"つま先を床につけたまま、または手で大腿の裏を支える", dose:"3〜5呼吸 × 3回"},
+  {id:"danda", ja:"杖のポーズ", sa:"Dandasana", pos:"座位", lv:1, s:{ercT:2,multL:2,ilio:2,quad:2}, t:["ham"], tags:["floor"],
+    how:["脚を前に伸ばして座り、坐骨の上に骨盤を立てる","大腿四頭筋を収縮し、膝の裏を床へ近づける","手は殿部の横で床を押し、背筋を伸ばす"],
+    pt:"骨盤後傾・平背傾向に。ハムストリングスの短縮で骨盤が後傾する場合は、殿部の下に畳んだブランケットを敷く。",
+    cue:["お尻の骨の上にまっすぐ座る","膝の裏を床に近づける","頭のてっぺんを上へ"],
+    mod:"殿部の下にブランケットを敷く・壁に背をつけて行う", dose:"5〜8呼吸 × 2回"},
+  {id:"lunge", ja:"ローランジ", sa:"Anjaneyasana", pos:"立位", lv:1, uni:1, s:{quad:1,gmax:1,ta:1}, t:["ilio","rf"], tags:["knee","floor"],
+    how:["片膝立ちで前足を前に出し、前膝を足首の上に置く","骨盤を後傾させ、後ろ脚の股関節前面を伸ばす","腕を上へ伸ばす（腰を反らさない）"],
+    pt:"腸腰筋・大腿直筋の伸張。骨盤前傾・腰椎前弯での代償がないか観察し、下腹部の引き込みを促す。",
+    cue:["お尻を少し下に巻き込む","後ろの脚の付け根を伸ばす","腰は反らさない"],
+    mod:"後ろ膝の下にブランケットを敷く・手を前の大腿に置く", dose:"左右各5〜8呼吸 × 2回"},
+  {id:"supta", ja:"仰向けの足の親指のポーズ", sa:"Supta Padangusthasana", pos:"背臥位", lv:1, uni:1, s:{quad:1}, t:["ham","tricep","add"], tags:["floor","supine"],
+    how:["背臥位で片脚の足裏にストラップをかける","膝を伸ばしたまま脚を天井方向へ上げる","反対側の脚は床に伸ばし、骨盤が後傾しないよう保つ"],
+    pt:"ハムストリングスの伸張。外側へ倒すと内転筋群の伸張になる。人工股関節では屈曲角度の指示に従う。",
+    cue:["ひもを使って脚を上げる","反対の脚は床に置いたまま","膝は伸ばせる範囲で"],
+    mod:"膝を軽く曲げて行う・ストラップを長めに持つ", dose:"左右各8〜10呼吸 × 2回"},
+  {id:"baddha", ja:"合せきのポーズ", sa:"Baddha Konasana", pos:"座位", lv:1, s:{ercT:1,multL:1}, t:["add"], tags:["floor"],
+    how:["座位で足裏を合わせ、踵を会陰に近づける","坐骨の上に骨盤を立て、背筋を伸ばす","膝を無理に押し下げず、重力で開かせる"],
+    pt:"内転筋群の伸張。骨盤が後傾する場合はブランケットの上に座る。",
+    cue:["足の裏を合わせる","背筋を伸ばす","膝は自然に開く"],
+    mod:"殿部の下にブランケット、膝の下にブロックを置く", dose:"8〜10呼吸 × 2回"},
+  {id:"fish", ja:"支えのある魚のポーズ", sa:"Salamba Matsyasana", pos:"背臥位", lv:1, s:{ercT:1}, t:["pmaj","pmin","ra"], tags:["neck","floor","supine"],
+    how:["肩甲骨下角の高さにブロック（またはロールしたブランケット）を置く","背臥位になり、胸椎をブロックに預ける","頭部は床か低い枕で支え、腕を横に開く"],
+    pt:"円背・巻き肩に対する胸椎伸展のモビリティと胸筋の伸張。頸部が過伸展しないよう頭部の高さを調整する。",
+    cue:["胸の後ろに台を置いて寝る","腕を横に開いて胸を広げる","首は楽な位置で"],
+    mod:"ブロックを低くする・頭の下に枕を置く", dose:"1〜2分 × 1〜2回"},
+  {id:"sidebend", ja:"立位の体側伸ばし", sa:"Indudalasana", pos:"立位", lv:1, uni:1, s:{obl:1,ql:1}, t:["ql","lat"], tags:[],
+    how:["山のポーズから両腕を頭上へ伸ばし、手を組む","両足で床を押したまま、体幹を真横へ側屈する","胸が前に倒れないよう、前額面上で行う"],
+    pt:"短縮側の腰方形筋・広背筋の伸張。側弯傾向では凹側を伸ばす方向を多めに行う。",
+    cue:["両足で床を押す","体を真横に倒す","胸は正面に向けたまま"],
+    mod:"片手を腰に置き、片腕だけを上げて行う", dose:"左右各5呼吸 × 2回"},
+  {id:"chin", ja:"仰向けのあご引き（準備運動）", sa:"Chin Tuck", pos:"背臥位", lv:1, s:{dnf:3}, t:["subocc"], tags:["floor","supine"],
+    how:["背臥位で膝を立て、後頭部に薄いタオルを敷く","鼻先で小さくうなずくように、顎を引く（頭は床から浮かせない）","胸鎖乳突筋に力が入らない強さで10秒保持する"],
+    pt:"深部頸部屈筋の再教育。アーサナの前段階として頭部前方位に用いる。胸鎖乳突筋の過活動を触診で確認する。",
+    cue:["小さくうなずくように、あごを引く","頭は床から浮かせない","首の前に力を入れすぎない"],
+    mod:"座位や立位で壁に頭をつけて行う", dose:"10秒 × 10回"},
+  {id:"goddess", ja:"女神のポーズ", sa:"Utkata Konasana", pos:"立位", lv:2, s:{quad:2,gmax:2,er:3,add:2,gmed:1}, t:["add"], tags:["knee"],
+    how:["脚を大きく開き、つま先を斜め外へ向ける","膝をつま先の方向へ曲げ、骨盤をまっすぐ下ろす","腕は肘を曲げて肩の高さに開く"],
+    pt:"股関節外旋筋・大殿筋の強化。knee-inを防ぎ「膝を外へ」押し出させる。外反膝・大腿内旋に。",
+    cue:["膝はつま先と同じ方向へ","お尻をまっすぐ下ろす","背筋を伸ばす"],
+    mod:"膝の曲げを浅くする・椅子の背に手を添える", dose:"5呼吸 × 3回"},
+  {id:"heel", ja:"かかと上げの山のポーズ", sa:"Tadasana（踵挙上）", pos:"立位", lv:1, s:{tricep:3,tp:3,per:1,intr:2}, t:[], tags:["bal"],
+    how:["山のポーズから、母趾球で床を押して踵を上げる","踵が外へ倒れない（足関節が外側へ傾かない）よう、踵を内側へ寄せる","ゆっくり下ろす"],
+    pt:"後脛骨筋と足部内在筋による内側縦アーチの保持。踵挙上時の後足部の内反（正常）が出るか観察する。",
+    cue:["親指の付け根で床を押す","足首が外に倒れないように","ゆっくり下ろす"],
+    mod:"壁や椅子の背に手を添える・両手で支えて回数を増やす", dose:"10回 × 2〜3セット"},
+  {id:"kneeup", ja:"片脚立ちの膝上げ", sa:"Utthita Hasta Padangusthasana（準備）", pos:"立位", lv:2, uni:1, s:{ilio:3,gmed:2,intr:1,ta:1}, t:[], tags:["bal"],
+    how:["山のポーズから、片膝を股関節90°以上まで引き上げる","手で支えず、挙上脚の大腿を引き上げたまま保持する","支持脚側の骨盤が下がらないよう保つ"],
+    pt:"挙上脚の腸腰筋（股関節屈曲90°以上の保持）と支持脚の中殿筋。骨盤後傾・体幹後傾での代償に注意。",
+    cue:["膝を胸の方へ持ち上げる","背中を丸めない","支えている脚の骨盤を下げない"],
+    mod:"壁や椅子の背に手を添える", dose:"左右各5呼吸 × 3回"}
+];
+
+/* Kendall の姿勢タイプと Janda の交差症候群 */
+const TYPES = [
+  {id:"kl", n:"後弯前弯型（Kendall）", when:f=>f.kyph && (f.lordInc||f.pelAnt),
+    d:"胸椎後弯・腰椎前弯・骨盤前傾・頭部前方位。股関節屈筋と腰部伸筋の短縮、腹筋群・上背部伸筋・ハムストリングス（伸張位）の弱化が典型。"},
+  {id:"lo", n:"前弯型（Kendall）", when:f=>(f.lordInc||f.pelAnt) && !f.kyph && !f.sway,
+    d:"腰椎前弯と骨盤前傾が主体。腸腰筋・腰部伸筋の短縮と、腹筋群・大殿筋の弱化が典型。"},
+  {id:"fb", n:"平背型（Kendall）", when:f=>f.lordDec && f.pelPost,
+    d:"腰椎前弯の減少と骨盤後傾。ハムストリングスの短縮と、単関節の股関節屈筋（腸腰筋）・腰部伸筋の弱化が典型。"},
+  {id:"sw", n:"スウェイバック（Kendall）", when:f=>f.sway,
+    d:"骨盤前方偏位・股関節伸展位・長い胸椎後弯・頭部前方位。ハムストリングスの短縮と、腸腰筋・外腹斜筋・上背部伸筋の弱化が典型。"},
+  {id:"ucs", n:"上位交差症候群（Janda）", when:f=>f.fhp && (f.rsh||f.kyph),
+    d:"短縮：上部僧帽筋・肩甲挙筋・大胸筋／弱化：深部頸部屈筋群・中下部僧帽筋・前鋸筋。"},
+  {id:"lcs", n:"下位交差症候群（Janda）", when:f=>f.pelAnt && !f.sway,
+    d:"短縮：腸腰筋・大腿直筋・腰部脊柱起立筋／弱化：腹筋群・大殿筋・中殿筋。"}
+];
+
+const SEV = ["なし","軽度","明らか"];
+const SIDE_JA = {R:"右", L:"左", B:"両側"};
+
+/* ---------- 状態 ---------- */
+let S, UI = {flash:"", confirmClear:false};
+function today(){ const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function blank(){ return {v:1, step:0, info:{id:"", date:today()}, screen:{}, find:{}, conf:{}, prog:[], auto:true, view:"pt"}; }
+function sample(){
+  const s = blank();
+  s.sample = true; s.info.id = "サンプル";
+  s.screen = {bal:true};
+  s.find = {fhp:{sev:2}, rsh:{sev:2}, kyph:{sev:1}, pelAnt:{sev:1}, lordInc:{sev:1}, pelObl:{sev:1, side:"R"}, valgus:{sev:1, side:"B"}, pron:{sev:1, side:"B"}};
+  return s;
+}
+function load(){ try{ const t = localStorage.getItem(KEY); return t ? Object.assign(blank(), JSON.parse(t)) : null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null ? "" : s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const FBY = Object.fromEntries(FINDINGS.map(f=>[f.id,f]));
+const ABY = Object.fromEntries(ASANAS.map(a=>[a.id,a]));
+
+/* ---------- 推定 ---------- */
+function activeFindings(){ const o = {}; FINDINGS.forEach(f=>{ const st = S.find[f.id]; if (st && st.sev) o[f.id] = st.sev; }); return o; }
+
+function analyze(){
+  const weak = {}, tight = {};
+  const add = (map, m, v, side, fid) => {
+    const o = map[m] || (map[m] = {m, sc:0, sides:{}, src:[]});
+    o.sc += v;
+    if (side) o.sides[side] = (o.sides[side]||0) + v;
+    if (!o.src.includes(fid)) o.src.push(fid);
+  };
+  FINDINGS.forEach(f=>{
+    const st = S.find[f.id]; if (!st || !st.sev) return;
+    const side = f.side ? (st.side || null) : null;
+    const res = rel => !side ? null : side==="B" ? "B" : (rel==="o" ? (side==="R"?"L":"R") : side);
+    f.w.forEach(([m,v,rel])=>add(weak, m, v*st.sev, rel ? res(rel) : null, f.id));
+    f.t.forEach(([m,v,rel])=>add(tight, m, v*st.sev, rel ? res(rel) : null, f.id));
+  });
+  Object.values(weak).forEach(o=>{
+    o.raw = o.sc; o.c = S.conf[o.m] || null;
+    if (o.c==="low") o.sc *= 1.5;
+    if (o.c==="ok") o.sc = 0;
+  });
+  return {weak, tight};
+}
+function sideLabel(sides){
+  const k = Object.keys(sides||{});
+  if (!k.length) return "";
+  if (k.includes("B") || (k.includes("R") && k.includes("L"))){
+    if (!k.includes("B") && sides.R !== sides.L) return sides.R > sides.L ? "両側（右＞左）" : "両側（左＞右）";
+    return "両側";
+  }
+  return SIDE_JA[k[0]];
+}
+function flagsOf(a){
+  const ex = [], ca = [];
+  SCREEN.forEach(sc=>{
+    if (!S.screen[sc.id]) return;
+    a.tags.forEach(t=>{
+      if ((sc.ex||[]).includes(t)) ex.push({sc, t});
+      else if ((sc.ca||[]).includes(t) && !ca.some(x=>x.t===t)) ca.push({sc, t});
+    });
+  });
+  return {ex, ca};
+}
+function scoreAll(A){
+  return ASANAS.map(a=>{
+    const why = []; let sc = 0;
+    Object.entries(a.s).forEach(([m,w])=>{ const o = A.weak[m]; if (o && o.sc>0){ const v = w*o.sc; sc += v; why.push({m, v, k:"s"}); } });
+    a.t.forEach(m=>{ const o = A.tight[m]; if (o && o.sc>0){ const v = 0.8*o.sc; sc += v; why.push({m, v, k:"t"}); } });
+    why.sort((x,y)=>y.v-x.v);
+    /* 左右別のアーサナで、ねらう筋の弱化が片側に偏るときは重点側を示す */
+    let side = null;
+    if (a.uni){
+      let r = 0, l = 0;
+      why.forEach(w=>{ const o = (w.k==="s" ? A.weak : A.tight)[w.m]; const sd = o.sides||{}; r += (sd.R||0)*w.v; l += (sd.L||0)*w.v; });
+      if (r > l*1.5 && r>0) side = "R"; else if (l > r*1.5 && l>0) side = "L";
+    }
+    return {a, sc, why, side, fl:flagsOf(a)};
+  });
+}
+/* 自動選択：同じ筋を狙うアーサナばかりにならないよう、選ぶたびにその筋の価値を下げる */
+function autoProg(){
+  const A = analyze(), all = scoreAll(A);
+  const cands = all.filter(c=>!c.fl.ex.length && c.sc>0 && c.a.id!=="tadasana");
+  const picked = [], cov = {};
+  for (let i=0; i<5; i++){
+    let best = null, bv = 0;
+    cands.forEach(c=>{
+      if (picked.includes(c.a.id)) return;
+      let v = 0; c.why.forEach(w=>{ v += w.v/(1+(cov[w.m]||0)*1.5); });
+      v *= c.fl.ca.length ? 0.85 : 1;
+      if (v > bv){ bv = v; best = c; }
+    });
+    if (!best || bv < 1) break;
+    picked.push(best.a.id);
+    best.why.forEach(w=>{ cov[w.m] = (cov[w.m]||0) + 1; });
+  }
+  if (Object.keys(activeFindings()).length && !flagsOf(ABY.tadasana).ex.length) picked.unshift("tadasana");
+  return picked;
+}
+function sortedProg(){
+  return S.prog.filter(id=>ABY[id]).sort((x,y)=>POS_ORDER.indexOf(ABY[x].pos)-POS_ORDER.indexOf(ABY[y].pos) || S.prog.indexOf(x)-S.prog.indexOf(y));
+}
+
+/* ---------- 図 ---------- */
+function poseSVG(id){
+  const p = POSES[id]; if (!p) return "";
+  const pt = q => q[0]+" "+q[1];
+  const shift = arr => arr.map(q=>[q[0]+1.6, q[1]]);
+  const path = (pts, far) => `<path class="lb${far?" far":""}" d="M${pts.map(pt).join(" L")}"/>`;
+  const a2 = p.a2 || shift(p.a1), l2 = p.l2 || shift(p.l1);
+  const far = !p.f;
+  let s = `<svg class="pose" viewBox="0 0 120 96" aria-hidden="true"><line class="fl" x1="4" y1="91.5" x2="116" y2="91.5"/>`;
+  (p.pr||[]).forEach(r=>{ s += `<rect class="pr" x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" rx="1.5"/>`; });
+  s += path([p.p, ...l2], far) + path([p.n, ...a2], far);
+  s += p.c ? `<path class="lb" d="M${pt(p.p)} Q${pt(p.c)} ${pt(p.n)} L${pt(p.h)}"/>` : path([p.p, p.n, p.h]);
+  s += path([p.p, ...p.l1]) + path([p.n, ...p.a1]);
+  s += `<circle class="hd" cx="${p.h[0]}" cy="${p.h[1]}" r="5.6"/></svg>`;
+  return s;
+}
+function plumbSVG(){
+  return `<svg viewBox="0 0 60 120" aria-hidden="true">
+    <line x1="34" y1="4" x2="34" y2="116" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <circle cx="31" cy="14" r="8" fill="none" stroke="var(--ink)" stroke-width="2.4"/>
+    <path d="M31 22 Q27 44 31 60 Q34 64 33 64 L34 86 L35 108 L44 110" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    ${[[34,15],[34,28],[34,62],[34.5,86],[35,107]].map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="2.6" fill="var(--accent)"/>`).join("")}
+  </svg>`;
+}
+
+/* ---------- 画面 ---------- */
+function renderTop(){
+  const i = S.step;
+  return `<div class="app">姿勢ヨガ処方ナビ<small>${esc(S.info.id||"")}${S.sample?"（サンプル）":""}</small></div>
+  <div class="steps">${STEPS.map((s,k)=>`<button data-act="go" data-n="${k}" class="${k<i?"done":""}" ${k===i?'aria-current="step"':""}>${s.label}</button>`).join("")}</div>`;
+}
+function renderBottom(){
+  const i = S.step, last = i===STEPS.length-1;
+  const nf = Object.keys(activeFindings()).length;
+  return `<button class="btn" data-act="go" data-n="${i-1}" ${i===0?"disabled":""}>戻る</button>
+  <div class="nav-mid">所見 <b>${nf}</b><br>処方 <b>${S.prog.length}</b></div>
+  ${last ? `<button class="btn primary" data-act="go" data-n="0">最初へ</button>` : `<button class="btn primary" data-act="go" data-n="${i+1}">次へ：${STEPS[i+1].label}</button>`}`;
+}
+
+function vInfo(){
+  const anyEx = SCREEN.some(sc=>S.screen[sc.id]);
+  return `<div class="ttl">${STEPS[0].title}</div>
+  <div class="card">
+    <label class="fl">患者ID・イニシャル（端末内にのみ保存）<input type="text" data-text="info.id" value="${esc(S.info.id)}" autocomplete="off"></label>
+    <label class="fl">評価日<input type="date" data-text="info.date" value="${esc(S.info.date)}"></label>
+  </div>
+  <div class="card">
+    <h3>禁忌・注意事項</h3>
+    <p class="sub">該当する項目を選ぶと、アーサナを除外するか、修正版で提示します。</p>
+    <div class="chips">${SCREEN.map(sc=>`<button data-act="scr" data-id="${sc.id}" aria-pressed="${!!S.screen[sc.id]}">${sc.n}</button>`).join("")}</div>
+    ${S.screen.tha ? `<div class="note warn"><p>人工股関節は術式によって脱臼肢位が異なります。主治医の指示を優先してください。</p></div>` : ""}
+    ${anyEx && (S.screen.acute) ? `<div class="note warn"><p>症状が強い時期や神経症状が進行している場合は、運動療法の適応を医師と確認してください。</p></div>` : ""}
+  </div>
+  <div class="note info"><p>このアプリは、立位アライメントから<b>筋力低下・短縮の仮説</b>を立て、アーサナ選択を補助するものです。診断はしません。推定は検査で確認して使ってください。</p></div>
+  <div class="row noprint">
+    <button class="btn small" data-act="sample">サンプルを読み込む</button>
+    ${UI.confirmClear
+      ? `<button class="btn small danger" data-act="clear">入力を消して新規</button><button class="btn small" data-act="cancelclear">やめる</button>`
+      : `<button class="btn small" data-act="newpt">新しい評価</button>`}
+  </div>`;
+}
+
+function findRow(f){
+  const st = S.find[f.id] || {}, sev = st.sev || 0;
+  const mlist = arr => arr.map(([m,,rel])=>MUSCLES[m].n + (f.side && rel==="o" ? "（反対側）" : "")).join("・");
+  let h = `<div class="fd${sev?" on":""}">
+    <div class="fd-head"><b>${f.n}</b>${sev && f.side && !st.side ? `<span class="miss" title="側が未選択"></span>` : ""}</div>
+    <p class="sub">${f.h}</p>
+    <div class="seg compact">${SEV.map((l,i)=>`<button data-act="sev" data-id="${f.id}" data-v="${i}" aria-pressed="${sev===i}">${l}</button>`).join("")}</div>`;
+  if (f.side && sev){
+    const opts = f.side==="bi" ? ["B","R","L"] : ["R","L"];
+    h += `<div class="side-row"><span>${f.sl}</span><div class="seg compact">${opts.map(o=>`<button data-act="side" data-id="${f.id}" data-v="${o}" aria-pressed="${st.side===o}">${SIDE_JA[o]}</button>`).join("")}</div></div>`;
+  }
+  h += `<details class="hint"><summary>推定される筋</summary><p>弱化：${mlist(f.w)}</p><p>短縮：${mlist(f.t)}</p></details></div>`;
+  return h;
+}
+function vPlane(pl){
+  const step = STEPS.find(s=>s.id===pl);
+  const guide = pl==="sag"
+    ? `<div class="card"><div class="plumb">${plumbSVG()}<div><b>理想的なアライメント</b><ul><li>耳垂</li><li>肩峰</li><li>大転子</li><li>膝関節前部（膝蓋骨後面）</li><li>外果のやや前方</li></ul><p class="sub">が一直線に並ぶ。側方から垂線と比べて観察。</p></div></div></div>`
+    : `<div class="card"><p class="sub" style="margin:0"><b>前方：</b>頭部の傾き・肩の高さ・ASISの高さ・膝蓋骨の向き・膝の位置・アーチ<br><b>後方：</b>肩甲骨の位置・棘突起の並び・腸骨稜の高さ・踵骨の傾き</p></div>`;
+  return `<div class="ttl">${step.title}</div>${guide}` +
+    GROUPS[pl].map(g=>{
+      const fs = FINDINGS.filter(f=>f.pl===pl && f.g===g);
+      return `<div class="sec-title">${g}</div><div class="card">${fs.map(findRow).join("")}</div>`;
+    }).join("");
+}
+
+function vJudge(){
+  const F = activeFindings(), A = analyze();
+  if (!Object.keys(F).length) return `<div class="ttl">${STEPS[3].title}</div><div class="note warn"><p>まだ所見が選ばれていません。「側面」「前後」で所見を選んでください。</p></div>`;
+  const types = TYPES.filter(t=>t.when(F));
+  const weak = Object.values(A.weak).sort((x,y)=>y.raw-x.raw);
+  const tight = Object.values(A.tight).sort((x,y)=>y.sc-x.sc);
+  const maxW = Math.max(...weak.map(o=>o.raw), 1), maxT = Math.max(...tight.map(o=>o.sc), 1);
+  const src = o => o.src.map(id=>FBY[id].n).join("・");
+  return `<div class="ttl">${STEPS[3].title}</div>
+  <div class="card"><h3>姿勢タイプ</h3>
+    ${types.length ? types.map(t=>`<div class="type"><b>${t.n}</b><span>${t.d}</span></div>`).join("") : `<p class="sub">典型的な姿勢タイプには当てはまりません。部位別の所見から推定します。</p>`}
+  </div>
+  <div class="card"><h3>筋力低下の推定（強化の対象）</h3>
+    <p class="sub">MMTなどで確認し「低下あり」「問題なし」を入れると処方に反映します。「問題なし」の筋は処方の対象から外れます。</p>
+    ${weak.map(o=>{ const M = MUSCLES[o.m], sd = sideLabel(o.sides);
+      return `<div class="ms${o.c==="ok"?" ok":""}">
+        <div class="ms-head"><b>${M.n}</b>${sd?`<span class="sd">${sd}</span>`:""}</div>
+        <div class="bar"><i style="width:${Math.round(o.raw/maxW*100)}%"></i></div>
+        <div class="src">根拠：${src(o)}</div>
+        ${M.wt?`<div class="src">確認：${M.wt}</div>`:""}
+        <div class="seg compact">${[["","推定のまま"],["low","低下あり"],["ok","問題なし"]].map(([v,l])=>`<button data-act="conf" data-m="${o.m}" data-v="${v}" aria-pressed="${(o.c||"")===v}">${l}</button>`).join("")}</div>
+      </div>`; }).join("")}
+  </div>
+  <div class="card"><h3>短縮の推定（伸張の対象）</h3>
+    ${tight.map(o=>{ const M = MUSCLES[o.m], sd = sideLabel(o.sides);
+      return `<div class="ms"><div class="ms-head"><b>${M.n}</b>${sd?`<span class="sd">${sd}</span>`:""}</div>
+        <div class="bar t"><i style="width:${Math.round(o.sc/maxT*100)}%"></i></div>
+        <div class="src">根拠：${src(o)}${M.tt?`／確認：${M.tt}`:""}</div></div>`; }).join("")}
+  </div>`;
+}
+
+function asanaCard(c, A){
+  const a = c.a, on = S.prog.includes(a.id), ex = c.fl.ex.length > 0;
+  const tg = [];
+  c.why.slice(0,4).forEach(w=>tg.push(`<span class="${w.k==="s"?"tg-s":"tg-t"}">${w.k==="s"?"強化":"伸張"} ${MUSCLES[w.m].n}</span>`));
+  c.fl.ca.forEach(x=>tg.push(`<span class="tg-c">注意 ${TAGS[x.t].n}</span>`));
+  c.fl.ex.forEach(x=>tg.push(`<span class="tg-x">除外 ${x.sc.n}</span>`));
+  const mods = [a.mod, ...c.fl.ca.map(x=>TAGS[x.t].mod)].filter(Boolean);
+  return `<div class="as${on?" on":""}">
+    <div class="as-row">${poseSVG(a.id)}
+      <div class="as-txt"><b>${a.ja}</b><small>${a.sa}・${a.pos}・難易度${"●".repeat(a.lv)}${"○".repeat(3-a.lv)}</small>
+        ${tg.length?`<div class="tags">${tg.join("")}</div>`:""}
+        ${c.side?`<div class="side-note">${SIDE_JA[c.side]}側を重点的に</div>`:""}
+      </div></div>
+    ${ex ? "" : `<div class="row"><button class="btn small${on?"":" primary"}" data-act="tog" data-id="${a.id}">${on?"処方から外す":"処方に追加"}</button></div>`}
+    <details class="hint"><summary>手順・観察点・修正版</summary>
+      <ol>${a.how.map(x=>`<li>${x}</li>`).join("")}</ol>
+      <p><b>観察：</b>${a.pt}</p>
+      <p><b>修正版：</b>${mods.join("／")}</p>
+      <p><b>量の目安：</b>${a.dose}</p>
+    </details>
+  </div>`;
+}
+function vRx(){
+  const A = analyze(), all = scoreAll(A);
+  const ok = all.filter(c=>!c.fl.ex.length), exd = all.filter(c=>c.fl.ex.length);
+  const rec = ok.filter(c=>c.sc>0).sort((x,y)=>y.sc-x.sc);
+  const rest = ok.filter(c=>c.sc<=0);
+  const prog = sortedProg();
+  return `<div class="ttl">${STEPS[4].title}</div>
+  <div class="card"><h3>現在の処方（${prog.length}）</h3>
+    ${prog.length ? `<ol class="prog-list">${prog.map(id=>`<li>${ABY[id].ja} <small>${ABY[id].dose}</small></li>`).join("")}</ol>` : `<p class="sub">まだ選ばれていません。</p>`}
+    <p class="sub">${S.auto ? "所見に合わせて自動で選んでいます。追加・削除すると手動に切り替わります。" : "手動で編集中です。"}</p>
+    <div class="row"><button class="btn small" data-act="reauto">おすすめを選び直す</button>${prog.length?`<button class="btn small" data-act="clearprog">すべて外す</button>`:""}</div>
+  </div>
+  ${rec.length ? `<div class="sec-title">所見に合う順</div><div class="card">${rec.map(c=>asanaCard(c,A)).join("")}</div>` : `<div class="note warn"><p>所見がないため、おすすめはありません。</p></div>`}
+  ${rest.length ? `<details class="hint"><summary>その他のアーサナ（${rest.length}）</summary><div class="card" style="margin-top:8px">${rest.map(c=>asanaCard(c,A)).join("")}</div></details>` : ""}
+  ${exd.length ? `<details class="hint"><summary>禁忌・注意により除外（${exd.length}）</summary><div class="card" style="margin-top:8px">${exd.map(c=>asanaCard(c,A)).join("")}</div></details>` : ""}`;
+}
+
+function patientCard(c, i){
+  const a = c.a;
+  const st = Object.entries(a.s).filter(([,w])=>w>=2).sort((x,y)=>y[1]-x[1]).map(([m])=>MUSCLES[m].pn);
+  const tt = a.t.map(m=>MUSCLES[m].pn);
+  const aim = [st.length ? [...new Set(st)].slice(0,3).join("・")+"をきたえる" : "", tt.length ? [...new Set(tt)].slice(0,2).join("・")+"をのばす" : ""].filter(Boolean).join("／") || "よい姿勢を体で覚える";
+  const pm = c.fl.ca.map(x=>TAGS[x.t].p).filter(Boolean);
+  return `<div class="pc">
+    <div class="pc-top"><span class="pc-n">${i+1}</span><h3>${a.ja}</h3></div>
+    <p class="sa">${a.sa}</p>
+    ${poseSVG(a.id)}
+    <p class="aim"><b>ねらい：</b>${aim}</p>
+    <ul>${a.cue.map(x=>`<li>${x}</li>`).join("")}</ul>
+    <p class="dose">${a.dose}${c.side?`（${SIDE_JA[c.side]}側を多めに）`:""}</p>
+    ${pm.length ? `<p class="pmod">${pm.join("。")}</p>` : ""}
+  </div>`;
+}
+function recordText(){
+  const F = activeFindings(), A = analyze(), all = scoreAll(A), by = Object.fromEntries(all.map(c=>[c.a.id,c]));
+  const L = [];
+  L.push(`【ヨガ・アライメント評価】${S.info.date||""}${S.info.id?"　ID："+S.info.id:""}`);
+  const scr = SCREEN.filter(sc=>S.screen[sc.id]).map(sc=>sc.n);
+  L.push(`禁忌・注意：${scr.length?scr.join("、"):"なし"}`);
+  ["sag","fro"].forEach(pl=>{
+    const fs = FINDINGS.filter(f=>f.pl===pl && F[f.id]).map(f=>{
+      const st = S.find[f.id]; const sd = f.side && st.side ? `${f.sl}：${SIDE_JA[st.side]}・` : "";
+      return `${f.n}（${sd}${SEV[st.sev]}）`;
+    });
+    L.push(`${pl==="sag"?"矢状面":"前額面"}：${fs.length?fs.join("、"):"特記なし"}`);
+  });
+  const types = TYPES.filter(t=>t.when(F)).map(t=>t.n);
+  if (types.length) L.push(`姿勢タイプ（推定）：${types.join("、")}`);
+  const weak = Object.values(A.weak).sort((x,y)=>y.raw-x.raw);
+  if (weak.length) L.push(`筋力低下の推定：${weak.map(o=>MUSCLES[o.m].n + (sideLabel(o.sides)?`（${sideLabel(o.sides)}）`:"") + (o.c==="low"?"［低下確認］":o.c==="ok"?"［問題なし］":"")).join("、")}`);
+  const tight = Object.values(A.tight).sort((x,y)=>y.sc-x.sc);
+  if (tight.length) L.push(`短縮の推定：${tight.map(o=>MUSCLES[o.m].n + (sideLabel(o.sides)?`（${sideLabel(o.sides)}）`:"")).join("、")}`);
+  const prog = sortedProg();
+  L.push(`処方アーサナ：${prog.length?"":"なし"}`);
+  prog.forEach((id,i)=>{
+    const c = by[id], a = c.a;
+    const tg = c.why.filter(w=>w.k==="s").slice(0,3).map(w=>MUSCLES[w.m].n);
+    const mods = c.fl.ca.map(x=>TAGS[x.t].mod);
+    L.push(`　${i+1}. ${a.ja}（${a.sa}）${a.dose}${c.side?`、${SIDE_JA[c.side]}側重点`:""}${tg.length?`　目的：${tg.join("・")}の強化`:""}${mods.length?`　修正：${mods.join("／")}`:""}`);
+  });
+  L.push("※立位アライメントからの推定。筋力・筋長は検査で確認し、反応をみて処方を調整する。");
+  return L.join("\n");
+}
+function vOut(){
+  const A = analyze(), all = scoreAll(A), by = Object.fromEntries(all.map(c=>[c.a.id,c]));
+  const prog = sortedProg();
+  const tabs = `<div class="seg noprint">${[["pt","患者に見せる"],["rec","記録"]].map(([v,l])=>`<button data-act="view" data-v="${v}" aria-pressed="${S.view===v}">${l}</button>`).join("")}</div>`;
+  if (S.view==="rec"){
+    return `<div class="ttl">${STEPS[5].title}</div>${tabs}
+    <div class="card"><textarea id="rec" readonly>${esc(recordText())}</textarea>
+    <div class="row"><button class="btn primary" data-act="copy">記録をコピー</button></div>${UI.flash?`<div class="flash">${UI.flash}</div>`:""}</div>`;
+  }
+  if (!prog.length) return `<div class="ttl">${STEPS[5].title}</div>${tabs}<div class="note warn"><p>処方がまだありません。「処方」でアーサナを選んでください。</p></div>`;
+  return `<div class="ttl noprint">${STEPS[5].title}</div>${tabs}
+  <div class="pv-head"><h2>あなたの姿勢づくりヨガ</h2><p>${esc(S.info.date||"")}</p></div>
+  <div class="note info pv-rules"><p>・痛みやしびれが出たら、すぐにやめましょう<br>・呼吸は止めず、ゆっくり続けます<br>・反動をつけず、できる範囲で行いましょう</p></div>
+  ${prog.map((id,i)=>patientCard(by[id], i)).join("")}
+  <div class="row noprint"><button class="btn" data-act="print">印刷する</button></div>`;
+}
+
+const VIEWS = {info:vInfo, sag:()=>vPlane("sag"), fro:()=>vPlane("fro"), jud:vJudge, rx:vRx, out:vOut};
+function render(){
+  if (S.auto) S.prog = autoProg();
+  $("#top").innerHTML = renderTop();
+  $("#main").innerHTML = `<div class="wrap">${VIEWS[STEPS[S.step].id]()}</div>`;
+  $("#bottom").innerHTML = renderBottom();
+}
+function goStep(n){
+  S.step = Math.max(0, Math.min(STEPS.length-1, n));
+  UI.flash = ""; UI.confirmClear = false;
+  save(); render(); window.scrollTo(0,0);
+}
+function setPath(p, v){ const k = p.split("."); let o = S; while (k.length>1) o = o[k.shift()]; o[k[0]] = v; }
+
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
+  const d = b.dataset;
+  switch (d.act){
+    case "go": return goStep(Number(d.n));
+    case "scr": S.screen[d.id] = !S.screen[d.id]; break;
+    case "sev": {
+      const f = FBY[d.id], v = Number(d.v);
+      const st = S.find[d.id] || (S.find[d.id] = {});
+      st.sev = v;
+      if (v && f.side==="bi" && !st.side) st.side = "B";
+      if (v && f.ex && S.find[f.ex]) S.find[f.ex].sev = 0;
+      break;
+    }
+    case "side": S.find[d.id].side = d.v; break;
+    case "conf": if (d.v) S.conf[d.m] = d.v; else delete S.conf[d.m]; break;
+    case "tog": {
+      S.auto = false;
+      S.prog = S.prog.includes(d.id) ? S.prog.filter(x=>x!==d.id) : [...S.prog, d.id];
+      break;
+    }
+    case "reauto": S.auto = true; S.prog = autoProg(); break;
+    case "clearprog": S.auto = false; S.prog = []; break;
+    case "view": S.view = d.v; UI.flash = ""; break;
+    case "copy": {
+      const t = recordText();
+      const done = ()=>{ UI.flash = "コピーしました"; render(); };
+      const fallback = ()=>{ const ta = $("#rec"); ta.removeAttribute("readonly"); ta.select(); try{ document.execCommand("copy"); }catch(_){} ta.setAttribute("readonly",""); done(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fallback); else fallback();
+      return;
+    }
+    case "print": window.print(); return;
+    case "sample": S = sample(); return goStep(1);
+    case "newpt": if (S.sample){ S = blank(); return goStep(0); } UI.confirmClear = true; render(); return;
+    case "cancelclear": UI.confirmClear = false; render(); return;
+    case "clear": S = blank(); return goStep(0);
+  }
+  save(); render();
+});
+document.addEventListener("input", e=>{
+  const t = e.target;
+  if (t.dataset.text){ setPath(t.dataset.text, t.value); save(); if (t.dataset.text==="info.id") $("#top .app small").textContent = t.value; }
+});
+
+S = load() || blank();
+render();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>
